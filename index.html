@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Energy Accountability Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+}
+
+header {
+    background: #1f4fd8;
+    color: white;
+    padding: 15px;
+    font-size: 22px;
+    text-align: center;
+}
+
+.container {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.value {
+    font-size: 34px;
+    font-weight: bold;
+    color: #1f4fd8;
+}
+
+.small {
+    color: gray;
+    font-size: 14px;
+}
+
+.full {
+    grid-column: span 2;
+}
+
+.status {
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.good {
+    background: #d4f7dc;
+    color: #146c2e;
+}
+
+.warn {
+    background: #ffe2b3;
+    color: #8a5b00;
+}
+
+.bad {
+    background: #ffd6d6;
+    color: #7a0000;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background: #ddd;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+Energy Accountability and Loss Certification System
+</header>
+
+<div class="container">
+
+<div class="card">
+    <h3>Input Energy</h3>
+    <div class="value" id="inputEnergy">0</div>
+    <div class="small">kWh</div>
+</div>
+
+<div class="card">
+    <h3>Output Energy</h3>
+    <div class="value" id="outputEnergy">0</div>
+    <div class="small">kWh</div>
+</div>
+
+<div class="card">
+    <h3>Energy Loss</h3>
+    <div class="value" id="lossEnergy">0</div>
+    <div class="small">kWh</div>
+</div>
+
+<div class="card">
+    <h3>Efficiency</h3>
+    <div class="value" id="efficiency">0</div>
+    <div class="small">%</div>
+</div>
+
+<div class="card full">
+    <h3>Loss Analysis</h3>
+    <p id="reason">Analyzing...</p>
+    <div id="statusBox" class="status"></div>
+</div>
+
+<div class="card full">
+    <h3>Recommended Actions</h3>
+    <ul id="solutionList"></ul>
+</div>
+
+</div>
+
+<footer>
+Prototype Monitoring Dashboard | Live Simulation
+</footer>
+
+<script>
+function updateDashboard() {
+
+    let input = Math.floor(Math.random() * 50) + 150;
+    let output = input - Math.floor(Math.random() * 30);
+    let loss = input - output;
+    let efficiency = ((output / input) * 100).toFixed(2);
+
+    document.getElementById("inputEnergy").innerText = input;
+    document.getElementById("outputEnergy").innerText = output;
+    document.getElementById("lossEnergy").innerText = loss;
+    document.getElementById("efficiency").innerText = efficiency;
+
+    let reasonText = "";
+    let statusText = "";
+    let statusClass = "";
+    let solutions = [];
+
+    if (loss <= 5) {
+        reasonText = "Normal technical loss due to line resistance.";
+        statusText = "System operating within safe limits.";
+        statusClass = "good";
+        solutions = [
+            "Continue periodic monitoring",
+            "Maintain existing wiring"
+        ];
+    } else if (loss <= 15) {
+        reasonText = "Possible wiring inefficiency or overload detected.";
+        statusText = "Moderate loss detected.";
+        statusClass = "warn";
+        solutions = [
+            "Inspect internal wiring",
+            "Balance electrical loads",
+            "Schedule maintenance check"
+        ];
+    } else {
+        reasonText = "Abnormal loss detected. Possible power theft or faulty equipment.";
+        statusText = "High energy loss detected!";
+        statusClass = "bad";
+        solutions = [
+            "Inspect meter tampering",
+            "Audit connected loads",
+            "Replace damaged cables",
+            "Enable automatic alerts"
+        ];
+    }
+
+    document.getElementById("reason").innerText = reasonText;
+
+    let statusBox = document.getElementById("statusBox");
+    statusBox.innerText = statusText;
+    statusBox.className = "status " + statusClass;
+
+    let list = document.getElementById("solutionList");
+    list.innerHTML = "";
+    solutions.forEach(item => {
+        let li = document.createElement("li");
+        li.innerText = item;
+        list.appendChild(li);
+    });
+}
+
+setInterval(updateDashboard, 2500);
+updateDashboard();
+</script>
+
+</body>
+</html>
