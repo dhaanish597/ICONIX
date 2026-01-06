@@ -1,0 +1,108 @@
+/*
+  Energy Accountability and Loss Certification System
+  ESP32 Firmware Logic
+
+  This program reads energy values from two energy meters:
+  - Input Energy Meter
+  - Output Energy Meter
+
+*/
+
+#include <PZEM004Tv30.h>
+
+/* -------------------- PIN DEFINITIONS -------------------- */
+#define INPUT_METER_RX 16
+#define INPUT_METER_TX 17
+
+#define OUTPUT_METER_RX 4
+#define OUTPUT_METER_TX 2
+
+/* -------------------- SERIAL OBJECTS -------------------- */
+PZEM004Tv30 inputMeter(Serial2, INPUT_METER_RX, INPUT_METER_TX);
+PZEM004Tv30 outputMeter(Serial1, OUTPUT_METER_RX, OUTPUT_METER_TX);
+
+/* -------------------- VARIABLES -------------------- */
+float inputEnergy = 0.0;
+float outputEnergy = 0.0;
+float energyLoss = 0.0;
+float efficiency = 0.0;
+
+/* -------------------- SETUP FUNCTION -------------------- */
+void setup() {
+  Serial.begin(115200);
+
+  Serial.println("Energy Accountability System Initializing...");
+  
+  Serial2.begin(9600, SERIAL_8N1, INPUT_METER_RX, INPUT_METER_TX);
+  Serial1.begin(9600, SERIAL_8N1, OUTPUT_METER_RX, OUTPUT_METER_TX);
+
+  Serial.println("Energy meters initialized");
+}
+
+/* -------------------- MAIN LOOP -------------------- */
+void loop() {
+
+  /* ---------- READ INPUT ENERGY METER ---------- */
+  float inputVoltage = inputMeter.voltage();
+  float inputCurrent = inputMeter.current();
+  float inputPower   = inputMeter.power();
+  inputEnergy        = inputMeter.energy();
+
+  /* ---------- READ OUTPUT ENERGY METER ---------- */
+  float outputVoltage = outputMeter.voltage();
+  float outputCurrent = outputMeter.current();
+  float outputPower   = outputMeter.power();
+  outputEnergy        = outputMeter.energy();
+
+  /* ---------- VALIDATION ---------- */
+  if (isnan(inputEnergy) || isnan(outputEnergy)) {
+    Serial.println("Error: Energy meter communication failed");
+    delay(2000);
+    return;
+  }
+
+  /* ---------- LOSS CALCULATION ---------- */
+  energyLoss = inputEnergy - outputEnergy;
+
+  if (energyLoss < 0) {
+    energyLoss = 0; // Prevent negative loss
+  }
+
+  /* ---------- EFFICIENCY CALCULATION ---------- */
+  if (inputEnergy > 0) {
+    efficiency = (outputEnergy / inputEnergy) * 100.0;
+  } else {
+    efficiency = 0;
+  }
+
+  /* ---------- DISPLAY VALUES ---------- */
+  Serial.println("----- ENERGY REPORT -----");
+
+  Serial.print("Input Energy: ");
+  Serial.print(inputEnergy);
+  Serial.println(" Wh");
+
+  Serial.print("Output Energy: ");
+  Serial.print(outputEnergy);
+  Serial.println(" Wh");
+
+  Serial.print("Energy Loss: ");
+  Serial.print(energyLoss);
+  Serial.println(" Wh");
+
+  Serial.print("Efficiency: ");
+  Serial.print(efficiency);
+  Serial.println(" %");
+
+  /* ---------- DECISION LOGIC ---------- */
+  if (energyLoss > (0.1 * inputEnergy)) {
+    Serial.println("Warning: Abnormal energy loss detected");
+  } else {
+    Serial.println("Energy usage within normal limits");
+  }
+
+  Serial.println("--------------------------");
+
+  /* ---------- DATA UPDATE INTERVAL ---------- */
+  delay(3000);
+}
